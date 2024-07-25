@@ -1,0 +1,12 @@
+---
+- block:
+  - name: Installing Linux Apps
+    become: true
+    apt:
+      name: '{{ item }}'
+      install_recommends: yes
+      state: present
+    loop: "{{ apt_packages }}" # install packages one by one
+      # - "{{ apt_packages }}" # install all packages at once
+
+  tags: packages

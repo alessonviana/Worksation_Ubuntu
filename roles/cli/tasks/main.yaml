@@ -1,0 +1,94 @@
+---
+- block:
+    - name: Ensure Zsh is installed
+      apt:
+        name: zsh
+        state: present
+      become: yes
+
+    - name: Verify if Oh-My-zsh is installed
+      command: test -d /{{ ansible_user_id }}/.oh-my-zsh
+      register: ohmyzsh
+      ignore_errors: true
+
+    - name: Installing Oh-My-zsh
+      shell: 'curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | bash'
+      args:
+        executable: /bin/zsh
+        chdir: /{{ ansible_user_id }}
+      become: yes
+      when: ohmyzsh.rc != 0
+
+    - name: Changing Default Shell to ZSH
+      become: true
+      user:
+        name: '{{ ansible_user_id }}'
+        shell: /bin/zsh
+
+    - name: Changing Default ZSH Theme to bira
+      lineinfile:
+        path: /{{ ansible_user_id }}/.zshrc
+        regexp: '^ZSH_THEME='
+        line: 'ZSH_THEME="bira"'
+      become: yes
+
+    - name: Clone zsh-autosuggestions repository
+      ansible.builtin.git:
+        repo: 'https://github.com/zsh-users/zsh-autosuggestions'
+        dest: /{{ ansible_user_id }}/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+      become: yes
+
+    - name: Add zsh-autosuggestions on ZSH plugins
+      lineinfile:
+        path: /{{ ansible_user_id }}/.zshrc
+        regexp: '^plugins='
+        line: 'plugins=(git zsh-autosuggestions)'
+      become: yes
+
+    - name: Creating ZSH Completion folder
+      file:
+        path: /{{ ansible_user_id }}/.oh-my-zsh/completions
+        state: directory
+        mode: '0755'
+      become: true
+
+    - name: Adding autoload to compinit
+      lineinfile:
+        path: /{{ ansible_user_id }}/.zshrc
+        line: 'autoload -U compinit && compinit'
+        state: present
+      become: true
+
+    - name: Add VTE content in .zshrc file
+      blockinfile:
+        path: /{{ ansible_user_id }}/.zshrc
+        block: |
+          if [ $TILIX_ID ] || [ $VTE_VERSION ]; then
+              source /etc/profile.d/vte-2.91.sh
+          fi
+        marker: "# {mark} ANSIBLE MANAGED BLOCK VTE"
+      become: true
+
+    - name: Add custom content in .zshrc file
+      blockinfile:
+        path: /{{ ansible_user_id }}/.zshrc
+        block: |
+          # set PATH so it includes user's private ~/.local/bin if it exists
+          if [ -d "$HOME/.local/bin" ] ; then
+              PATH="$HOME/.local/bin:$PATH"
+          fi
+
+          if [ -f ~/.bash_helpers ]; then
+              . ~/.bash_helpers
+          fi
+        marker: "# {mark} ANSIBLE MANAGED BLOCK CUSTOM"
+      become: true
+
+    - name: Installing ctop
+      become: true
+      get_url:
+        url: "https://github.com/bcicen/ctop/releases/download/v{{ ctop_version }}/ctop-{{ ctop_version }}-linux-amd64"
+        dest: /usr/local/bin/ctop
+        mode: '0755'
+
+  tags: cli

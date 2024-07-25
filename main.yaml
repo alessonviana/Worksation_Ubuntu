@@ -1,0 +1,16 @@
+---
+- name: Preparing Workstation
+  hosts: local
+  become: yes
+  roles:
+   - update
+   #- chrome
+   - cli  
+  # - docker 
+  # - kubectl
+  # - kubectx 
+   - packages 
+  # - slack 
+  # - spotifi 
+  # - terraform 
+  # - vscode

@@ -1,0 +1,9 @@
+- block:
+  - name: Install Kubectl
+    become: true
+    apt:
+      name: kubectl=1.29.*
+      state: present
+      force: yes
+  
+  tags: kubectl

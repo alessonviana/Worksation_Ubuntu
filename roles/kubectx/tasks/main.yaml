@@ -1,0 +1,9 @@
+- block:
+  - name: Install Kubectx
+    become: true
+    apt:
+      name: kubectx
+      state: present
+      force: yes
+  
+  tags: kubectx

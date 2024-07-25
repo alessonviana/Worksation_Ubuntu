@@ -1,0 +1,41 @@
+---
+  - block:
+    - name: Atualizar a lista de pacotes
+      apt:
+        update_cache: yes
+
+    - name: Install dependencies
+      apt:
+        name: 
+          - gnupg
+          - software-properties-common
+        state: present
+
+    - name: Add the Terraform GPG key 
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Add the Terraform repo
+      apt_repository:
+        repo: deb [arch=amd64] https://apt.releases.hashicorp.com focal main
+        state: present
+
+    - name: Atualizar a lista de pacotes novamente
+      apt:
+        update_cache: yes
+
+    - name: Install Terraform
+      apt:
+        name: terraform
+        state: present
+
+    - name: Verify the Terraform instalation 
+      command: terraform --version
+      register: terraform_version
+
+    - name: Show Terraform version
+      debug:
+        msg: "Versão do Terraform instalada: {{ terraform_version.stdout }}"
+        
+    tags: terraform

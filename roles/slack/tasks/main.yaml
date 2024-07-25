@@ -1,0 +1,9 @@
+- block:
+  - name: Install slack
+    become: true
+    community.general.snap:
+      name: slack
+      state: present
+      force: yes
+  
+  tags: slack
